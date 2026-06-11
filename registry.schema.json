@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/NeoHaskell/neopackages/main/registry.schema.json",
+  "title": "NeoPackages registry",
+  "description": "Schema for registry.json — the package index consumed by the `neo` CLI (https://github.com/NeoHaskell/neocli). The CLI fetches this file, looks up each bare dependency from `neo.json` in `packages`, picks the highest version satisfying the constraint, and resolves it to a git URL + SHA.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["packages"],
+  "properties": {
+    "packages": {
+      "type": "object",
+      "description": "Map of package name → metadata. The package name is the key used in `neo.json` dependencies.",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9._-]*$",
+        "description": "Lowercase package name. Letters, digits, `.`, `_`, `-`. Must start with a letter or digit."
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/packageMetadata"
+      }
+    }
+  },
+  "$defs": {
+    "packageMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "repository", "versions"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable one-line description shown in errors/listings."
+        },
+        "repository": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(https?://|git@|git\\+|ssh://).+",
+          "description": "Git URL of the package. Passed verbatim to `cabal.project` as `source-repository-package`/git location. Example: `https://github.com/NeoHaskell/some-package`."
+        },
+        "versions": {
+          "type": "object",
+          "minProperties": 1,
+          "description": "Map of semver version → resolved git ref. Keys must be valid semver (parsed by `nodejs_semver::Version`).",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(?:\\+[0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*)?$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/packageVersion"
+          }
+        }
+      }
+    },
+    "packageVersion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha", "tag"],
+      "properties": {
+        "sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,40}$",
+          "description": "Full or short git SHA (7–40 hex chars) the version resolves to. Used as the git rev when fetching the package."
+        },
+        "tag": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Upstream git tag this version corresponds to (e.g. `v1.2.3`). Informational — `sha` is the source of truth for the build."
+        }
+      }
+    }
+  }
+}
