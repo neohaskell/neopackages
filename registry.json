@@ -2,13 +2,7 @@
   "packages": {
     "stub-package": {
       "description": "A stub package to test that NeoPackages work",
-      "repository": "https://github.com/NickSeagull/stub-package",
-      "versions": {
-        "0.1.0": {
-          "sha": "019baad4410145968b3c7e22a3cda5a7c3f041c1",
-          "tag": "0.1.0"
-        }
-      }
+      "repository": "https://github.com/NickSeagull/stub-package"
     }
   }
 }

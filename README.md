@@ -2,7 +2,10 @@
 
 The package registry consumed by the [`neo` CLI](https://github.com/NeoHaskell/neocli).
 `neo` fetches `registry.json` from `main`, looks up each bare dependency from a
-project's `neo.json`, and resolves it to a git URL + SHA for `cabal.project`.
+project's `neo.json`, then runs `git ls-remote --tags <repository>` to enumerate
+the available versions and pick the highest tag satisfying the constraint. The
+registry does **not** list versions — git tags on the upstream repo are the
+source of truth.
 
 ## Files
 
@@ -16,10 +19,7 @@ project's `neo.json`, and resolves it to a git URL + SHA for `cabal.project`.
   "packages": {
     "<package-name>": {
       "description": "One-line human-readable description.",
-      "repository": "https://github.com/<owner>/<repo>",
-      "versions": {
-        "<semver>": { "sha": "<git-sha>", "tag": "<upstream-tag>" }
-      }
+      "repository": "https://github.com/<owner>/<repo>"
     }
   }
 }
@@ -29,9 +29,10 @@ Constraints (enforced by `registry.schema.json`):
 
 - `packages` keys are lowercase, `[a-z0-9][a-z0-9._-]*`.
 - `repository` is a git URL (`https://…`, `git@…`, `ssh://…`, `git+…`).
-- `versions` keys are valid semver (e.g. `1.2.3`, `0.1.0-beta.1`).
-- `sha` is a 7–40 char hex git SHA.
-- `tag` is the upstream git tag (informational — `sha` is the source of truth).
+
+Versions come from the upstream repo's git tags. The CLI accepts tags in the
+shape `1.2.3` or `v1.2.3` (the leading `v`, if present, is stripped before
+semver parsing).
 
 ## Validating locally
 
